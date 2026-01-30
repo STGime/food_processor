@@ -1,0 +1,258 @@
+{
+  "info": {
+    "name": "Food Processor API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Video-to-Ingredients extraction API. Submit a YouTube URL, poll for status, retrieve structured ingredient data."
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "job_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "Extract — Babish Aglio e Olio (Tier 0, recipe link)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.collectionVariables.set('job_id', res.job_id);",
+              "pm.test('Returns job_id', () => pm.expect(res.job_id).to.be.a('string'));",
+              "pm.test('Status is queued', () => pm.expect(res.status).to.eql('queued'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/extract",
+          "host": ["{{base_url}}"],
+          "path": ["api", "extract"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtube_url\": \"https://www.youtube.com/watch?v=bJUiWdM__Qw\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Extract — Adam Ragusea Pizza Bread (Tier 0, description)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.collectionVariables.set('job_id', res.job_id);",
+              "pm.test('Returns job_id', () => pm.expect(res.job_id).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/extract",
+          "host": ["{{base_url}}"],
+          "path": ["api", "extract"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtube_url\": \"https://www.youtube.com/watch?v=o4ABOKdHEUs\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Extract — Babish Kitchen Tools (Tier 1, transcript only)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.collectionVariables.set('job_id', res.job_id);",
+              "pm.test('Returns job_id', () => pm.expect(res.job_id).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/extract",
+          "host": ["{{base_url}}"],
+          "path": ["api", "extract"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtube_url\": \"https://www.youtube.com/watch?v=1AxLzMJIgxM\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Extract — Invalid URL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "pm.test('Has error message', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/extract",
+          "host": ["{{base_url}}"],
+          "path": ["api", "extract"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtube_url\": \"https://example.com/not-a-video\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Extract — Missing Body",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/extract",
+          "host": ["{{base_url}}"],
+          "path": ["api", "extract"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "Job Status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('Has status field', () => pm.expect(res.status).to.be.a('string'));",
+              "pm.test('Has progress field', () => pm.expect(res.progress).to.be.a('number'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/status/{{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "status", "{{job_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Job Results",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  const res = pm.response.json();",
+              "  pm.test('Has video_id', () => pm.expect(res.video_id).to.be.a('string'));",
+              "  pm.test('Has ingredients', () => pm.expect(res.ingredients).to.be.an('array'));",
+              "  pm.test('Has shopping_list', () => pm.expect(res.shopping_list).to.be.an('object'));",
+              "  pm.test('Has confidence', () => pm.expect(res.confidence).to.be.a('number'));",
+              "  pm.test('Has processing_metadata', () => pm.expect(res.processing_metadata).to.be.an('object'));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/results/{{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "results", "{{job_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Job Status — Not Found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/status/nonexistent_job",
+          "host": ["{{base_url}}"],
+          "path": ["api", "status", "nonexistent_job"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{                                                                                                                 
+    "permissions": {                                                                                                
+      "allow": [                                                                                                    
+        "Edit",                                                                                                     
+        "Write",                                                                                                    
+        "Read",                                                                                                     
+        "WebFetch",                                                                                                 
+        "WebSearch",                                                                                                
+        "Bash(npm run *)",                                                                                          
+        "Bash(git *)"                                                                                               
+      ]                                                                                                             
+    }                                                                                                               
+  }    
