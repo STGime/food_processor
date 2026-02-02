@@ -12,6 +12,7 @@ export interface Ingredient {
 export interface ExtractionResult {
   video_id: string;
   video_title: string;
+  recipe_name: string | null;
   channel: string;
   extraction_tier: number;
   confidence: number;
@@ -78,4 +79,63 @@ export interface LLMExtractionResponse {
   recipe_name: string | null;
   servings: number | null;
   ingredients: RawLLMIngredient[];
+}
+
+export interface Device {
+  device_id: string;
+  api_key: string;
+  is_premium: boolean;
+  subscription_id: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface GatedExtractionResult extends ExtractionResult {
+  is_truncated: boolean;
+  total_ingredient_count: number;
+  shown_ingredient_count: number;
+  upgrade_message?: string;
+}
+
+export interface RecipeCard {
+  card_id: string;
+  device_id: string;
+  recipe_name: string;
+  video_id: string | null;
+  video_title: string | null;
+  channel: string | null;
+  servings: number | null;
+  ingredients: Ingredient[];
+  shopping_list: Record<string, string[]> | null;
+  image_url: string | null;
+  image_gcs_path: string | null;
+  image_prompt: string | null;
+  image_generated_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface GatedRecipeCard extends RecipeCard {
+  is_truncated: boolean;
+  total_ingredient_count: number;
+  shown_ingredient_count: number;
+  upgrade_message?: string;
+}
+
+export interface LemonSqueezyWebhookPayload {
+  meta: {
+    event_name: string;
+    custom_data?: {
+      device_id?: string;
+    };
+  };
+  data: {
+    id: string;
+    attributes: {
+      status: string;
+      first_subscription_item?: {
+        subscription_id: number;
+      };
+    };
+  };
 }

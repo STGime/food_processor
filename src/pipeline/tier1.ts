@@ -1,7 +1,7 @@
 import type { TierResult, VideoMetadata, Ingredient } from "../types.js";
 import { fetchTranscript, joinTranscript } from "../services/youtube.js";
 import { extractIngredients } from "../services/gemini.js";
-import { rawToIngredients } from "./normalizer.js";
+import { rawToIngredients, mergeIngredients } from "./normalizer.js";
 
 /**
  * Tier 1 — Transcript + LLM Extraction
@@ -85,25 +85,3 @@ function noTranscriptResult(): TierResult {
   };
 }
 
-/**
- * Merge ingredients from two tiers, deduplicating by name similarity.
- */
-function mergeIngredients(
-  existing: Ingredient[],
-  incoming: Ingredient[]
-): Ingredient[] {
-  const merged = [...existing];
-  const existingNames = new Set(
-    existing.map((i) => i.name.toLowerCase().trim())
-  );
-
-  for (const ingredient of incoming) {
-    const name = ingredient.name.toLowerCase().trim();
-    if (!existingNames.has(name)) {
-      merged.push(ingredient);
-      existingNames.add(name);
-    }
-  }
-
-  return merged;
-}

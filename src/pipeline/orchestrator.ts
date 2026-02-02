@@ -2,6 +2,7 @@ import type { ExtractionResult, VideoMetadata, Job } from "../types.js";
 import { fetchVideoMetadata, extractVideoId } from "../services/youtube.js";
 import { runTier0 } from "./tier0.js";
 import { runTier1 } from "./tier1.js";
+import { runTier2 } from "./tier2.js";
 import { buildShoppingList } from "./normalizer.js";
 import { config } from "../config.js";
 
@@ -59,15 +60,55 @@ export async function runPipeline(job: Job): Promise<ExtractionResult> {
     );
   }
 
-  // --- Tier 2/3 not yet implemented — return best available result ---
-  job.progress = 1;
+  // --- Tier 2: Video Analysis via Gemini 2.5 Flash ---
+  job.current_tier = 2;
+  job.progress = 0.7;
+
+  // Collect best ingredients so far from Tiers 0+1
+  const bestPrior =
+    tier1.ingredients.length >= tier0.ingredients.length
+      ? tier1.ingredients
+      : tier0.ingredients;
+
+  const tier2 = await runTier2(metadata, bestPrior);
+  tiersAttempted.push(2);
+  totalCost += tier2.cost_usd;
+
   console.log(
-    `[Pipeline] Tiers 0+1 insufficient (best confidence: ${Math.max(tier0.confidence, tier1.confidence).toFixed(2)}). Tier 2+ not yet implemented.`
+    `[Tier 2] confidence=${tier2.confidence.toFixed(2)}, ingredients=${tier2.ingredients.length}`
   );
 
-  // Return whichever tier had higher confidence
-  const best = tier1.confidence >= tier0.confidence ? tier1 : tier0;
-  const sourceUrls = [...tier0.source_urls, ...tier1.source_urls];
+  if (tier2.confidence >= config.confidenceThreshold) {
+    job.progress = 1;
+    const sourceUrls = [
+      ...tier0.source_urls,
+      ...tier1.source_urls,
+      ...tier2.source_urls,
+    ];
+    return buildResult(
+      metadata,
+      { ...tier2, source_urls: sourceUrls },
+      tiersAttempted,
+      totalCost,
+      startTime
+    );
+  }
+
+  // --- Fallback: return best result across all tiers ---
+  job.progress = 1;
+  console.log(
+    `[Pipeline] All tiers insufficient (best confidence: ${Math.max(tier0.confidence, tier1.confidence, tier2.confidence).toFixed(2)}).`
+  );
+
+  const allTiers = [tier0, tier1, tier2];
+  const best = allTiers.reduce((a, b) =>
+    b.confidence > a.confidence ? b : a
+  );
+  const sourceUrls = [
+    ...tier0.source_urls,
+    ...tier1.source_urls,
+    ...tier2.source_urls,
+  ];
   return buildResult(
     metadata,
     { ...best, source_urls: sourceUrls },
@@ -93,7 +134,8 @@ function buildResult(
 ): ExtractionResult {
   return {
     video_id: metadata.video_id,
-    video_title: tier.recipe_name || metadata.title,
+    video_title: metadata.title,
+    recipe_name: tier.recipe_name,
     channel: metadata.channel,
     extraction_tier: tier.tier,
     confidence: tier.confidence,

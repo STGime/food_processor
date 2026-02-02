@@ -14,4 +14,23 @@ export const config = {
   // If YouTube Data API isn't enabled for that key, set YOUTUBE_API_KEY separately.
   youtubeApiKey: process.env.YOUTUBE_API_KEY || required("GEMINI_API_KEY"),
   confidenceThreshold: 0.7,
+
+  // LemonSqueezy
+  lemonSqueezyWebhookSecret: required("LEMONSQUEEZY_WEBHOOK_SECRET"),
+  lemonSqueezyStoreId: required("LEMONSQUEEZY_STORE_ID"),
+  lemonSqueezyVariantId: required("LEMONSQUEEZY_VARIANT_ID"),
+  lemonSqueezyApiKey: process.env.LEMONSQUEEZY_API_KEY || "",
+
+  // Free tier
+  freeIngredientLimit: parseInt(process.env.FREE_INGREDIENT_LIMIT || "5", 10),
+
+  // Fireworks AI (image generation)
+  fireworksApiKey: required("FIREWORKS_API_KEY"),
+
+  // Google Cloud Storage
+  gcsBucketName: required("GCS_BUCKET_NAME"),
+  googleCloudProject: required("GOOGLE_CLOUD_PROJECT"),
+
+  // Database
+  databaseUrl: required("DATABASE_URL"),
 } as const;

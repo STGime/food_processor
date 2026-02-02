@@ -1,6 +1,29 @@
 import type { Ingredient, RawLLMIngredient } from "../types.js";
 
 /**
+ * Merge ingredients from two sources, deduplicating by name similarity.
+ */
+export function mergeIngredients(
+  existing: Ingredient[],
+  incoming: Ingredient[]
+): Ingredient[] {
+  const merged = [...existing];
+  const existingNames = new Set(
+    existing.map((i) => i.name.toLowerCase().trim())
+  );
+
+  for (const ingredient of incoming) {
+    const name = ingredient.name.toLowerCase().trim();
+    if (!existingNames.has(name)) {
+      merged.push(ingredient);
+      existingNames.add(name);
+    }
+  }
+
+  return merged;
+}
+
+/**
  * Convert raw LLM-extracted ingredients to the full Ingredient type.
  * Assigns canonical names and shopping categories using heuristics.
  *

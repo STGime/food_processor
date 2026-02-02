@@ -57,16 +57,21 @@ ${INGREDIENT_SCHEMA}
 Transcript:
 ${text}`;
 
-  const result = await model.generateContent(prompt);
-  const raw = result.response.text();
+  let parsed = safeParseLLMResponse(
+    (await model.generateContent(prompt)).response.text(),
+  );
 
-  try {
-    return JSON.parse(raw) as LLMExtractionResponse;
-  } catch {
-    // Gemini sometimes wraps JSON in markdown code fences
-    const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "");
-    return JSON.parse(cleaned) as LLMExtractionResponse;
+  if (parsed.ingredients.length === 0) {
+    console.log(`[Gemini] Empty ingredients from ${context}, retrying…`);
+    const retry = safeParseLLMResponse(
+      (await model.generateContent(prompt)).response.text(),
+    );
+    if (retry.ingredients.length > 0) {
+      parsed = retry;
+    }
   }
+
+  return parsed;
 }
 
 /**
@@ -85,12 +90,22 @@ Ingredient list:
 ${rawList}`;
 
   const result = await model.generateContent(prompt);
-  const raw = result.response.text();
+  return safeParseLLMResponse(result.response.text());
+}
 
+/** Parse Gemini JSON response with fallback for markdown fences and missing fields */
+function safeParseLLMResponse(raw: string): LLMExtractionResponse {
+  let parsed: LLMExtractionResponse;
   try {
-    return JSON.parse(raw) as LLMExtractionResponse;
+    parsed = JSON.parse(raw) as LLMExtractionResponse;
   } catch {
+    // Gemini sometimes wraps JSON in markdown code fences
     const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "");
-    return JSON.parse(cleaned) as LLMExtractionResponse;
+    parsed = JSON.parse(cleaned) as LLMExtractionResponse;
   }
+
+  if (!Array.isArray(parsed.ingredients)) {
+    parsed.ingredients = [];
+  }
+  return parsed;
 }
