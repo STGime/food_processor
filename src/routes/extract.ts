@@ -55,6 +55,7 @@ router.get("/status/:job_id", requireAuth, async (req: Request<{ job_id: string 
     status: job.status,
     current_tier: job.current_tier,
     progress: job.progress,
+    ...(job.status_message ? { status_message: job.status_message } : {}),
     ...(job.error ? { error: job.error } : {}),
   });
 });

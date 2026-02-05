@@ -71,6 +71,7 @@ export interface Job {
   device_id: string;
   current_tier: number;
   progress: number;
+  status_message: string | null;
   result: ExtractionResult | null;
   error: string | null;
   created_at: Date;

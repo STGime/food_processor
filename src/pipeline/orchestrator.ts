@@ -4,6 +4,7 @@ import { runTier0 } from "./tier0.js";
 import { runTier1 } from "./tier1.js";
 import { runTier2 } from "./tier2.js";
 import { buildShoppingList } from "./normalizer.js";
+import { updateJobProgress } from "../jobs/store.js";
 import { config } from "../config.js";
 
 /**
@@ -16,13 +17,12 @@ export async function runPipeline(job: Job): Promise<ExtractionResult> {
   let totalCost = 0;
 
   // --- Fetch metadata ---
-  job.current_tier = 0;
-  job.progress = 0.1;
+  await updateJobProgress(job.id, 0, 0.1, "Fetching video metadata...");
 
   const metadata: VideoMetadata = await fetchVideoMetadata(job.video_id);
 
   // --- Tier 0: Metadata scrape ---
-  job.progress = 0.2;
+  await updateJobProgress(job.id, 0, 0.2, "Checking for linked recipes...");
   const tier0 = await runTier0(metadata);
   tiersAttempted.push(0);
   totalCost += tier0.cost_usd;
@@ -32,13 +32,11 @@ export async function runPipeline(job: Job): Promise<ExtractionResult> {
   );
 
   if (tier0.confidence >= config.confidenceThreshold) {
-    job.progress = 1;
     return buildResult(metadata, tier0, tiersAttempted, totalCost, startTime);
   }
 
   // --- Tier 1: Transcript + LLM ---
-  job.current_tier = 1;
-  job.progress = 0.5;
+  await updateJobProgress(job.id, 1, 0.4, "Analyzing video transcript...");
   const tier1 = await runTier1(metadata, tier0.ingredients);
   tiersAttempted.push(1);
   totalCost += tier1.cost_usd;
@@ -48,7 +46,6 @@ export async function runPipeline(job: Job): Promise<ExtractionResult> {
   );
 
   if (tier1.confidence >= config.confidenceThreshold) {
-    job.progress = 1;
     // Merge source URLs from both tiers
     const sourceUrls = [...tier0.source_urls, ...tier1.source_urls];
     return buildResult(
@@ -61,8 +58,7 @@ export async function runPipeline(job: Job): Promise<ExtractionResult> {
   }
 
   // --- Tier 2: Video Analysis via Gemini 2.5 Flash ---
-  job.current_tier = 2;
-  job.progress = 0.7;
+  await updateJobProgress(job.id, 2, 0.6, "Analyzing video content (this may take 1-2 minutes)...");
 
   // Collect best ingredients so far from Tiers 0+1
   const bestPrior =
@@ -79,7 +75,6 @@ export async function runPipeline(job: Job): Promise<ExtractionResult> {
   );
 
   if (tier2.confidence >= config.confidenceThreshold) {
-    job.progress = 1;
     const sourceUrls = [
       ...tier0.source_urls,
       ...tier1.source_urls,
@@ -95,7 +90,6 @@ export async function runPipeline(job: Job): Promise<ExtractionResult> {
   }
 
   // --- Fallback: return best result across all tiers ---
-  job.progress = 1;
   console.log(
     `[Pipeline] All tiers insufficient (best confidence: ${Math.max(tier0.confidence, tier1.confidence, tier2.confidence).toFixed(2)}).`
   );
