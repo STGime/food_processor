@@ -10,7 +10,7 @@ import {
 } from "../gallery/store.js";
 import { generateRecipeImage, buildImagePrompt } from "../services/fireworks.js";
 import { uploadImage, deleteImage } from "../services/gcsStorage.js";
-import type { Ingredient, RecipeCard, GatedRecipeCard } from "../types.js";
+import type { Ingredient, Instruction, RecipeCard, GatedRecipeCard } from "../types.js";
 
 export const router = Router();
 
@@ -27,6 +27,7 @@ router.post("/", requireAuth, async (req, res) => {
       channel,
       servings,
       ingredients,
+      instructions,
       shopping_list,
       generate_image = true,
     } = req.body as {
@@ -36,6 +37,7 @@ router.post("/", requireAuth, async (req, res) => {
       channel?: string;
       servings?: number;
       ingredients?: Ingredient[];
+      instructions?: Instruction[];
       shopping_list?: Record<string, string[]>;
       generate_image?: boolean;
     };
@@ -61,6 +63,7 @@ router.post("/", requireAuth, async (req, res) => {
       channel,
       servings,
       ingredients,
+      instructions: instructions ?? [],
       shopping_list,
     });
 
@@ -218,35 +221,54 @@ router.post("/:card_id/image", requireAuth, async (req: Request<{ card_id: strin
 
 /**
  * Gate a recipe card for free vs premium users.
- * Image is always visible. Ingredients are truncated for free users.
+ * Image is always visible. Ingredients and instructions are truncated for free users.
  */
 function gateCard(
   card: RecipeCard,
   isPremium: boolean,
 ): RecipeCard | GatedRecipeCard {
-  const totalCount = card.ingredients.length;
-  const limit = config.freeIngredientLimit;
+  const totalIngredients = card.ingredients.length;
+  const totalInstructions = card.instructions.length;
+  const ingredientLimit = config.freeIngredientLimit;
+  const instructionLimit = config.freeInstructionLimit;
 
-  if (isPremium || totalCount <= limit) {
+  const needsTruncation = !isPremium &&
+    (totalIngredients > ingredientLimit || totalInstructions > instructionLimit);
+
+  if (!needsTruncation) {
     return {
       ...card,
       is_truncated: false,
-      total_ingredient_count: totalCount,
-      shown_ingredient_count: totalCount,
+      total_ingredient_count: totalIngredients,
+      shown_ingredient_count: totalIngredients,
+      total_instruction_count: totalInstructions,
+      shown_instruction_count: totalInstructions,
     } satisfies GatedRecipeCard;
   }
 
-  const truncated = card.ingredients.slice(0, limit);
-  const shoppingList = rebuildShoppingList(truncated);
+  const truncatedIngredients = card.ingredients.slice(0, ingredientLimit);
+  const truncatedInstructions = card.instructions.slice(0, instructionLimit);
+  const shoppingList = rebuildShoppingList(truncatedIngredients);
+
+  const parts: string[] = [];
+  if (totalIngredients > ingredientLimit) {
+    parts.push(`${totalIngredients} ingredients`);
+  }
+  if (totalInstructions > instructionLimit) {
+    parts.push(`${totalInstructions} steps`);
+  }
 
   return {
     ...card,
-    ingredients: truncated,
+    ingredients: truncatedIngredients,
+    instructions: truncatedInstructions,
     shopping_list: shoppingList,
     is_truncated: true,
-    total_ingredient_count: totalCount,
-    shown_ingredient_count: limit,
-    upgrade_message: `This recipe has ${totalCount} ingredients. Upgrade to Premium to see all of them.`,
+    total_ingredient_count: totalIngredients,
+    shown_ingredient_count: Math.min(totalIngredients, ingredientLimit),
+    total_instruction_count: totalInstructions,
+    shown_instruction_count: Math.min(totalInstructions, instructionLimit),
+    upgrade_message: `This recipe has ${parts.join(" and ")}. Upgrade to Premium to see all of them.`,
   } satisfies GatedRecipeCard;
 }
 

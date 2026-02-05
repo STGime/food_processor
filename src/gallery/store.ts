@@ -1,5 +1,5 @@
 import { pool } from "../db.js";
-import type { Ingredient, RecipeCard } from "../types.js";
+import type { Ingredient, Instruction, RecipeCard } from "../types.js";
 
 interface CreateCardData {
   recipe_name: string;
@@ -8,6 +8,7 @@ interface CreateCardData {
   channel?: string;
   servings?: number;
   ingredients: Ingredient[];
+  instructions: Instruction[];
   shopping_list?: Record<string, string[]>;
 }
 
@@ -25,8 +26,8 @@ export async function createRecipeCard(
   const { rows } = await pool.query<RecipeCard>(
     `INSERT INTO recipe_cards
        (device_id, recipe_name, video_id, video_title, channel, servings,
-        ingredients, shopping_list, image_url, image_gcs_path, image_prompt, image_generated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ingredients, instructions, shopping_list, image_url, image_gcs_path, image_prompt, image_generated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
       deviceId,
@@ -36,6 +37,7 @@ export async function createRecipeCard(
       data.channel ?? null,
       data.servings ?? null,
       JSON.stringify(data.ingredients),
+      JSON.stringify(data.instructions),
       data.shopping_list ? JSON.stringify(data.shopping_list) : null,
       imageData?.image_url ?? null,
       imageData?.image_gcs_path ?? null,
@@ -98,6 +100,10 @@ function parseCard(row: RecipeCard): RecipeCard {
       typeof row.ingredients === "string"
         ? JSON.parse(row.ingredients)
         : row.ingredients,
+    instructions:
+      typeof row.instructions === "string"
+        ? JSON.parse(row.instructions)
+        : row.instructions ?? [],
     shopping_list:
       row.shopping_list && typeof row.shopping_list === "string"
         ? JSON.parse(row.shopping_list)

@@ -129,6 +129,7 @@ export interface RecipeCard {
   channel: string | null;
   servings: number | null;
   ingredients: Ingredient[];
+  instructions: Instruction[];
   shopping_list: Record<string, string[]> | null;
   image_url: string | null;
   image_gcs_path: string | null;
@@ -142,6 +143,8 @@ export interface GatedRecipeCard extends RecipeCard {
   is_truncated: boolean;
   total_ingredient_count: number;
   shown_ingredient_count: number;
+  total_instruction_count: number;
+  shown_instruction_count: number;
   upgrade_message?: string;
 }
 
