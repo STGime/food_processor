@@ -25,6 +25,15 @@ const INGREDIENT_SCHEMA = `{
       "optional": boolean,
       "preparation": string | null // e.g. "minced", "sliced", "room temperature"
     }
+  ],
+  "instructions": [
+    {
+      "step_number": number,        // sequential step number starting at 1
+      "text": string,               // the cooking instruction text
+      "duration": string | null,    // e.g. "5 minutes", "1 hour", null if not mentioned
+      "temperature": string | null, // e.g. "350°F", "180°C", null if not mentioned
+      "technique": string | null    // e.g. "sauté", "bake", "fold", null if not specific
+    }
   ]
 }`;
 
@@ -37,8 +46,9 @@ export async function extractIngredients(
 ): Promise<LLMExtractionResponse> {
   const prompt =
     context === "description"
-      ? `Extract all cooking ingredients from this YouTube video description.
+      ? `Extract all cooking ingredients and step-by-step cooking instructions from this YouTube video description.
 Look for ingredient lists, recipe sections, or any mentions of ingredients with quantities.
+Also extract any cooking instructions or steps described.
 If there is a recipe name or serving count, include those too.
 
 Return JSON matching this schema:
@@ -46,9 +56,10 @@ ${INGREDIENT_SCHEMA}
 
 Description:
 ${text}`
-      : `Extract all cooking ingredients mentioned in this video transcript.
+      : `Extract all cooking ingredients and step-by-step cooking instructions mentioned in this video transcript.
 The speaker may mention ingredients informally (e.g., "grab some flour", "two cloves of garlic").
 Identify every ingredient, estimate quantities when stated, and note preparation steps.
+Also extract the cooking instructions in order — each step the cook describes, including any durations, temperatures, or techniques mentioned.
 If the recipe name or serving count is mentioned, include those.
 
 Return JSON matching this schema:
@@ -82,6 +93,7 @@ export async function parseRawIngredientList(
 ): Promise<LLMExtractionResponse> {
   const prompt = `Parse this ingredient list into structured JSON.
 Each line is one ingredient. Extract the name, quantity, unit, and any preparation notes.
+If any cooking instructions are included, extract those as well. Otherwise return an empty instructions array.
 
 Return JSON matching this schema:
 ${INGREDIENT_SCHEMA}
@@ -106,6 +118,9 @@ function safeParseLLMResponse(raw: string): LLMExtractionResponse {
 
   if (!Array.isArray(parsed.ingredients)) {
     parsed.ingredients = [];
+  }
+  if (!Array.isArray(parsed.instructions)) {
+    parsed.instructions = [];
   }
   return parsed;
 }

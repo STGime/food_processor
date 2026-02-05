@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 export interface ScrapedRecipe {
   name: string | null;
   ingredients: string[];
+  instructions: string[];
   servings: number | null;
   source_url: string;
 }
@@ -46,6 +47,7 @@ export async function scrapeRecipePage(
 interface PartialRecipe {
   name: string | null;
   ingredients: string[];
+  instructions: string[];
   servings: number | null;
 }
 
@@ -65,6 +67,9 @@ function extractJsonLdRecipe($: cheerio.CheerioAPI): PartialRecipe | null {
           name: recipe.name || null,
           ingredients: normalizeIngredientList(
             recipe.recipeIngredient || recipe.ingredients || []
+          ),
+          instructions: normalizeInstructionList(
+            recipe.recipeInstructions || []
           ),
           servings: parseServings(recipe.recipeYield),
         };
@@ -127,6 +132,7 @@ function extractHeuristicRecipe(
   return {
     name: title,
     ingredients,
+    instructions: [],
     servings: null,
   };
 }
@@ -141,6 +147,43 @@ function normalizeIngredientList(raw: unknown[]): string[] {
       return null;
     })
     .filter((s): s is string => !!s && s.length > 0);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeInstructionList(raw: any): string[] {
+  if (!Array.isArray(raw)) return [];
+  const results: string[] = [];
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const trimmed = item.trim();
+      if (trimmed) results.push(trimmed);
+    } else if (typeof item === "object" && item !== null) {
+      // HowToSection: contains itemListElement with HowToStep objects
+      if (
+        item["@type"] === "HowToSection" &&
+        Array.isArray(item.itemListElement)
+      ) {
+        for (const step of item.itemListElement) {
+          const text = extractStepText(step);
+          if (text) results.push(text);
+        }
+      } else {
+        // HowToStep or plain object with text
+        const text = extractStepText(item);
+        if (text) results.push(text);
+      }
+    }
+  }
+  return results;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractStepText(step: any): string | null {
+  if (typeof step === "string") return step.trim() || null;
+  if (typeof step !== "object" || step === null) return null;
+  const text = step.text || step.description || step.name;
+  if (typeof text === "string") return text.trim() || null;
+  return null;
 }
 
 function parseServings(yield_: unknown): number | null {

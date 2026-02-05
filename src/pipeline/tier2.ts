@@ -1,6 +1,6 @@
 import type { TierResult, VideoMetadata, Ingredient } from "../types.js";
 import { analyzeVideo } from "../services/videoAnalyzer.js";
-import { rawToIngredients, mergeIngredients } from "./normalizer.js";
+import { rawToIngredients, rawToInstructions, mergeIngredients } from "./normalizer.js";
 
 // Gemini 2.5 Flash pricing
 const INPUT_COST_PER_TOKEN = 0.3 / 1_000_000; // $0.30 per 1M input tokens
@@ -64,6 +64,7 @@ export async function runTier2(
       tier: 2,
       confidence,
       ingredients: merged,
+      instructions: rawToInstructions(extraction.instructions),
       servings: extraction.servings,
       source_urls: [],
       cost_usd: cost,
@@ -75,6 +76,7 @@ export async function runTier2(
       tier: 2,
       confidence: 0,
       ingredients: [],
+      instructions: [],
       servings: null,
       source_urls: [],
       cost_usd: 0,

@@ -25,6 +25,15 @@ const INGREDIENT_SCHEMA = `{
       "optional": boolean,
       "preparation": string | null // e.g. "minced", "sliced", "room temperature"
     }
+  ],
+  "instructions": [
+    {
+      "step_number": number,        // sequential step number starting at 1
+      "text": string,               // the cooking instruction text
+      "duration": string | null,    // e.g. "5 minutes", "1 hour", null if not mentioned
+      "temperature": string | null, // e.g. "350°F", "180°C", null if not mentioned
+      "technique": string | null    // e.g. "sauté", "bake", "fold", null if not specific
+    }
   ]
 }`;
 
@@ -49,12 +58,14 @@ export async function analyzeVideo(
       ? `\n\nPrevious tiers already identified these ingredients — verify and supplement them:\n${previousIngredients.map((i) => `- ${i.name}${i.quantity ? ` (${i.quantity} ${i.unit || ""})` : ""}`).join("\n")}`
       : "";
 
-  const prompt = `Watch this cooking video carefully. Extract ALL ingredients used in the recipe by observing:
+  const prompt = `Watch this cooking video carefully. Extract ALL ingredients and step-by-step cooking instructions by observing:
 1. What the cook says (spoken ingredients, quantities, instructions)
 2. What is shown on screen (ingredient labels, measuring, packages)
 3. Any on-screen text or recipe cards displayed
+4. The sequence of cooking steps performed
 
 Return every ingredient with quantities when visible or mentioned.
+Also extract every cooking instruction in order — each step shown or described, including durations, temperatures, and techniques.
 If the recipe name or serving count is mentioned or shown, include those.
 
 Return JSON matching this schema:
@@ -105,6 +116,9 @@ function parseVideoResponse(result: GenerateContentResult) {
 
   if (!Array.isArray(parsed.ingredients)) {
     parsed.ingredients = [];
+  }
+  if (!Array.isArray(parsed.instructions)) {
+    parsed.instructions = [];
   }
 
   return {

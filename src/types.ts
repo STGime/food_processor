@@ -9,6 +9,14 @@ export interface Ingredient {
   preparation: string | null;
 }
 
+export interface Instruction {
+  step_number: number;
+  text: string;
+  duration?: string;
+  temperature?: string;
+  technique?: string;
+}
+
 export interface ExtractionResult {
   video_id: string;
   video_title: string;
@@ -18,6 +26,7 @@ export interface ExtractionResult {
   confidence: number;
   servings: number | null;
   ingredients: Ingredient[];
+  instructions: Instruction[];
   shopping_list: Record<string, string[]>;
   source_urls: string[];
   processing_metadata: {
@@ -31,6 +40,7 @@ export interface TierResult {
   tier: number;
   confidence: number;
   ingredients: Ingredient[];
+  instructions: Instruction[];
   servings: number | null;
   source_urls: string[];
   cost_usd: number;
@@ -58,6 +68,7 @@ export interface Job {
   status: JobStatus;
   youtube_url: string;
   video_id: string;
+  device_id: string;
   current_tier: number;
   progress: number;
   result: ExtractionResult | null;
@@ -75,10 +86,19 @@ export interface RawLLMIngredient {
   preparation: string | null;
 }
 
+export interface RawLLMInstruction {
+  step_number: number;
+  text: string;
+  duration?: string;
+  temperature?: string;
+  technique?: string;
+}
+
 export interface LLMExtractionResponse {
   recipe_name: string | null;
   servings: number | null;
   ingredients: RawLLMIngredient[];
+  instructions: RawLLMInstruction[];
 }
 
 export interface Device {
@@ -94,6 +114,8 @@ export interface GatedExtractionResult extends ExtractionResult {
   is_truncated: boolean;
   total_ingredient_count: number;
   shown_ingredient_count: number;
+  total_instruction_count: number;
+  shown_instruction_count: number;
   upgrade_message?: string;
 }
 
@@ -122,20 +144,3 @@ export interface GatedRecipeCard extends RecipeCard {
   upgrade_message?: string;
 }
 
-export interface LemonSqueezyWebhookPayload {
-  meta: {
-    event_name: string;
-    custom_data?: {
-      device_id?: string;
-    };
-  };
-  data: {
-    id: string;
-    attributes: {
-      status: string;
-      first_subscription_item?: {
-        subscription_id: number;
-      };
-    };
-  };
-}

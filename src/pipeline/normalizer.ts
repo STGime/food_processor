@@ -1,4 +1,4 @@
-import type { Ingredient, RawLLMIngredient } from "../types.js";
+import type { Ingredient, Instruction, RawLLMIngredient, RawLLMInstruction } from "../types.js";
 
 /**
  * Merge ingredients from two sources, deduplicating by name similarity.
@@ -21,6 +21,19 @@ export function mergeIngredients(
   }
 
   return merged;
+}
+
+/**
+ * Convert raw LLM-extracted instructions to the Instruction type.
+ */
+export function rawToInstructions(raw: RawLLMInstruction[]): Instruction[] {
+  return raw.map((r, i) => ({
+    step_number: r.step_number ?? i + 1,
+    text: r.text,
+    duration: r.duration,
+    temperature: r.temperature,
+    technique: r.technique,
+  }));
 }
 
 /**

@@ -1,4 +1,4 @@
-import type { ExtractionResult, VideoMetadata, Job } from "../types.js";
+import type { ExtractionResult, Instruction, VideoMetadata, Job } from "../types.js";
 import { fetchVideoMetadata, extractVideoId } from "../services/youtube.js";
 import { runTier0 } from "./tier0.js";
 import { runTier1 } from "./tier1.js";
@@ -124,6 +124,7 @@ function buildResult(
     tier: number;
     confidence: number;
     ingredients: ExtractionResult["ingredients"];
+    instructions: Instruction[];
     servings: number | null;
     source_urls: string[];
     recipe_name: string | null;
@@ -141,6 +142,7 @@ function buildResult(
     confidence: tier.confidence,
     servings: tier.servings,
     ingredients: tier.ingredients,
+    instructions: tier.instructions,
     shopping_list: buildShoppingList(tier.ingredients),
     source_urls: tier.source_urls,
     processing_metadata: {

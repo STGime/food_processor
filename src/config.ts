@@ -15,14 +15,9 @@ export const config = {
   youtubeApiKey: process.env.YOUTUBE_API_KEY || required("GEMINI_API_KEY"),
   confidenceThreshold: 0.7,
 
-  // LemonSqueezy
-  lemonSqueezyWebhookSecret: required("LEMONSQUEEZY_WEBHOOK_SECRET"),
-  lemonSqueezyStoreId: required("LEMONSQUEEZY_STORE_ID"),
-  lemonSqueezyVariantId: required("LEMONSQUEEZY_VARIANT_ID"),
-  lemonSqueezyApiKey: process.env.LEMONSQUEEZY_API_KEY || "",
-
   // Free tier
   freeIngredientLimit: parseInt(process.env.FREE_INGREDIENT_LIMIT || "5", 10),
+  freeInstructionLimit: parseInt(process.env.FREE_INSTRUCTION_LIMIT || "5", 10),
 
   // Fireworks AI (image generation)
   fireworksApiKey: required("FIREWORKS_API_KEY"),

@@ -1,11 +1,11 @@
-import type { TierResult, VideoMetadata, RawLLMIngredient } from "../types.js";
+import type { TierResult, VideoMetadata, RawLLMIngredient, Instruction } from "../types.js";
 import { extractUrls } from "../services/youtube.js";
 import { extractIngredients, parseRawIngredientList } from "../services/gemini.js";
 import {
   scrapeRecipePage,
   isLikelyRecipeUrl,
 } from "../services/recipeScraper.js";
-import { rawToIngredients } from "./normalizer.js";
+import { rawToIngredients, rawToInstructions } from "./normalizer.js";
 
 /**
  * Tier 0 — Metadata Scrape
@@ -17,6 +17,7 @@ import { rawToIngredients } from "./normalizer.js";
 export async function runTier0(metadata: VideoMetadata): Promise<TierResult> {
   const sourceUrls: string[] = [];
   let allRaw: RawLLMIngredient[] = [];
+  let instructions: Instruction[] = [];
   let recipeName: string | null = null;
   let servings: number | null = null;
   let cost = 0;
@@ -40,6 +41,18 @@ export async function runTier0(metadata: VideoMetadata): Promise<TierResult> {
       allRaw.push(...parsed.ingredients);
       recipeName = parsed.recipe_name ?? recipeName;
       servings = parsed.servings ?? servings;
+
+      // Use JSON-LD instructions if available, otherwise use LLM-parsed ones
+      if (instructions.length === 0) {
+        if (recipe.instructions.length > 0) {
+          instructions = recipe.instructions.map((text, i) => ({
+            step_number: i + 1,
+            text,
+          }));
+        } else if (parsed.instructions.length > 0) {
+          instructions = rawToInstructions(parsed.instructions);
+        }
+      }
     }
   }
 
@@ -53,6 +66,9 @@ export async function runTier0(metadata: VideoMetadata): Promise<TierResult> {
     allRaw = extracted.ingredients;
     recipeName = extracted.recipe_name ?? recipeName;
     servings = extracted.servings ?? servings;
+    if (instructions.length === 0 && extracted.instructions.length > 0) {
+      instructions = rawToInstructions(extracted.instructions);
+    }
   }
 
   // --- Step 3: Score confidence ---
@@ -74,6 +90,7 @@ export async function runTier0(metadata: VideoMetadata): Promise<TierResult> {
     tier: 0,
     confidence,
     ingredients: rawToIngredients(allRaw),
+    instructions,
     servings,
     source_urls: sourceUrls,
     cost_usd: cost,

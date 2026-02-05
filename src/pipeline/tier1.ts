@@ -1,7 +1,7 @@
 import type { TierResult, VideoMetadata, Ingredient } from "../types.js";
 import { fetchTranscript, joinTranscript } from "../services/youtube.js";
 import { extractIngredients } from "../services/gemini.js";
-import { rawToIngredients, mergeIngredients } from "./normalizer.js";
+import { rawToIngredients, rawToInstructions, mergeIngredients } from "./normalizer.js";
 
 /**
  * Tier 1 — Transcript + LLM Extraction
@@ -66,6 +66,7 @@ export async function runTier1(
     tier: 1,
     confidence,
     ingredients: merged,
+    instructions: rawToInstructions(extracted.instructions),
     servings: extracted.servings,
     source_urls: [],
     cost_usd: cost,
@@ -78,6 +79,7 @@ function noTranscriptResult(): TierResult {
     tier: 1,
     confidence: 0,
     ingredients: [],
+    instructions: [],
     servings: null,
     source_urls: [],
     cost_usd: 0,
