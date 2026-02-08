@@ -148,3 +148,27 @@ export interface GatedRecipeCard extends RecipeCard {
   upgrade_message?: string;
 }
 
+// Ingredient Swap Types
+export interface SwapSuggestion {
+  substitute_name: string;
+  quantity_ratio: number;
+  quantity_note: string | null;
+  confidence: number;
+  dietary_tags: string[];
+  notes: string | null;
+}
+
+export interface SwapRequest {
+  ingredient: string;
+  quantity?: number;
+  unit?: string;
+  recipe_context?: string;
+  dietary_filters?: string[];
+  available_ingredients?: string[];
+}
+
+export interface SwapResponse {
+  original_ingredient: string;
+  suggestions: SwapSuggestion[];
+}
+

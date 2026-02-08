@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.git
+*.md
+.DS_Store
+.claude
+deploy.sh
+*.postman_collection.json

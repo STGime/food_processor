@@ -2,7 +2,7 @@
   "info": {
     "name": "Food Processor API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Video-to-Ingredients extraction API. Submit a YouTube URL, poll for status, retrieve structured ingredient data. Supports Tier 0 (metadata), Tier 1 (transcript + LLM), and Tier 2 (Gemini 2.5 Flash video analysis).\n\nDevice-based auth: register a device first to get an API key, then include X-API-Key on all extraction requests. Free users see max 5 ingredients; premium users see all."
+    "description": "Video-to-Ingredients extraction API. Submit a YouTube URL, poll for status, retrieve structured ingredient data. Supports Tier 0 (metadata), Tier 1 (transcript + LLM), and Tier 2 (Gemini 2.5 Flash video analysis).\n\nFeatures:\n- Recipe extraction from YouTube videos\n- Recipe card gallery with AI-generated images\n- AI-powered ingredient swap suggestions with dietary filtering\n\nDevice-based auth: register a device first to get an API key, then include X-API-Key on all extraction requests. Free users see max 5 ingredients; premium users see all."
   },
   "variable": [
     {
@@ -150,34 +150,6 @@
           "host": ["{{base_url}}"],
           "path": ["api", "devices", "me"]
         }
-      }
-    },
-    {
-      "name": "Checkout URL",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "const res = pm.response.json();",
-              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-              "pm.test('Has checkout_url', () => pm.expect(res.checkout_url).to.be.a('string'));",
-              "pm.test('URL contains device_id', () => pm.expect(res.checkout_url).to.include('device_id'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "url": {
-          "raw": "{{base_url}}/api/checkout",
-          "host": ["{{base_url}}"],
-          "path": ["api", "checkout"]
-        },
-        "header": [
-          { "key": "X-API-Key", "value": "{{api_key}}" }
-        ]
       }
     },
     {
@@ -493,50 +465,6 @@
       }
     },
     {
-      "name": "Webhook — LemonSqueezy (simulated)",
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "// Generate HMAC-SHA256 signature for the webhook payload.",
-              "// Set LEMONSQUEEZY_WEBHOOK_SECRET in your Postman environment to match your .env value.",
-              "const secret = pm.environment.get('LEMONSQUEEZY_WEBHOOK_SECRET') || 'your_webhook_secret_here';",
-              "const body = pm.request.body.raw;",
-              "const signature = CryptoJS.HmacSHA256(body, secret).toString(CryptoJS.enc.Hex);",
-              "pm.request.headers.add({ key: 'X-Signature', value: signature });"
-            ]
-          }
-        },
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-              "pm.test('Received', () => pm.expect(pm.response.json().received).to.eql(true));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "url": {
-          "raw": "{{base_url}}/api/webhooks/lemonsqueezy",
-          "host": ["{{base_url}}"],
-          "path": ["api", "webhooks", "lemonsqueezy"]
-        },
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"meta\": {\n    \"event_name\": \"subscription_created\",\n    \"custom_data\": {\n      \"device_id\": \"{{device_id}}\"\n    }\n  },\n  \"data\": {\n    \"id\": \"sub_12345\",\n    \"attributes\": {\n      \"status\": \"active\"\n    }\n  }\n}"
-        }
-      }
-    },
-    {
       "name": "Gallery — Save Recipe Card",
       "event": [
         {
@@ -783,14 +711,26 @@
       }
     },
     {
-      "name": "Webhook — Invalid Signature (401)",
+      "name": "Swaps — Basic (butter)",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Returns 401', () => pm.response.to.have.status(401));"
+              "const res = pm.response.json();",
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has original_ingredient', () => pm.expect(res.original_ingredient).to.eql('butter'));",
+              "pm.test('Has suggestions array', () => pm.expect(res.suggestions).to.be.an('array'));",
+              "pm.test('Has at least one suggestion', () => pm.expect(res.suggestions.length).to.be.at.least(1));",
+              "if (res.suggestions.length > 0) {",
+              "  const s = res.suggestions[0];",
+              "  pm.test('Suggestion has substitute_name', () => pm.expect(s.substitute_name).to.be.a('string'));",
+              "  pm.test('Suggestion has quantity_ratio', () => pm.expect(s.quantity_ratio).to.be.a('number'));",
+              "  pm.test('Suggestion has confidence', () => pm.expect(s.confidence).to.be.a('number'));",
+              "  pm.test('Suggestion has dietary_tags', () => pm.expect(s.dietary_tags).to.be.an('array'));",
+              "  pm.test('Confidence is between 0 and 1', () => pm.expect(s.confidence).to.be.within(0, 1));",
+              "}"
             ]
           }
         }
@@ -798,17 +738,220 @@
       "request": {
         "method": "POST",
         "url": {
-          "raw": "{{base_url}}/api/webhooks/lemonsqueezy",
+          "raw": "{{base_url}}/api/swaps",
           "host": ["{{base_url}}"],
-          "path": ["api", "webhooks", "lemonsqueezy"]
+          "path": ["api", "swaps"]
         },
         "header": [
           { "key": "Content-Type", "value": "application/json" },
-          { "key": "X-Signature", "value": "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678" }
+          { "key": "X-API-Key", "value": "{{api_key}}" }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"meta\": {\n    \"event_name\": \"subscription_created\",\n    \"custom_data\": {\n      \"device_id\": \"{{device_id}}\"\n    }\n  },\n  \"data\": {\n    \"id\": \"sub_12345\",\n    \"attributes\": {\n      \"status\": \"active\"\n    }\n  }\n}"
+          "raw": "{\n  \"ingredient\": \"butter\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Swaps — With Dietary Filter (vegan)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has suggestions', () => pm.expect(res.suggestions).to.be.an('array'));",
+              "pm.test('Has at least one suggestion', () => pm.expect(res.suggestions.length).to.be.at.least(1));",
+              "if (res.suggestions.length > 0) {",
+              "  pm.test('First suggestion has dietary tags', () => pm.expect(res.suggestions[0].dietary_tags).to.be.an('array'));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/swaps",
+          "host": ["{{base_url}}"],
+          "path": ["api", "swaps"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredient\": \"butter\",\n  \"dietary_filters\": [\"vegan\"]\n}"
+        }
+      }
+    },
+    {
+      "name": "Swaps — With Available Ingredients",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has suggestions', () => pm.expect(res.suggestions).to.be.an('array'));",
+              "pm.test('Has at least one suggestion', () => pm.expect(res.suggestions.length).to.be.at.least(1));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/swaps",
+          "host": ["{{base_url}}"],
+          "path": ["api", "swaps"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredient\": \"butter\",\n  \"available_ingredients\": [\"coconut oil\", \"olive oil\"]\n}"
+        }
+      }
+    },
+    {
+      "name": "Swaps — Full Request (heavy cream for carbonara)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has original_ingredient', () => pm.expect(res.original_ingredient).to.eql('heavy cream'));",
+              "pm.test('Has suggestions', () => pm.expect(res.suggestions).to.be.an('array'));",
+              "pm.test('Has 1-5 suggestions', () => {",
+              "  pm.expect(res.suggestions.length).to.be.at.least(1);",
+              "  pm.expect(res.suggestions.length).to.be.at.most(5);",
+              "});",
+              "pm.test('Suggestions sorted by confidence desc', () => {",
+              "  for (let i = 1; i < res.suggestions.length; i++) {",
+              "    pm.expect(res.suggestions[i-1].confidence).to.be.at.least(res.suggestions[i].confidence);",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/swaps",
+          "host": ["{{base_url}}"],
+          "path": ["api", "swaps"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredient\": \"heavy cream\",\n  \"quantity\": 1,\n  \"unit\": \"cup\",\n  \"recipe_context\": \"pasta carbonara\",\n  \"dietary_filters\": [\"dairy-free\"],\n  \"available_ingredients\": [\"coconut milk\", \"cashews\", \"oat milk\"]\n}"
+        }
+      }
+    },
+    {
+      "name": "Swaps — Missing Ingredient (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "pm.test('Has error message', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/swaps",
+          "host": ["{{base_url}}"],
+          "path": ["api", "swaps"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "Swaps — Invalid dietary_filters (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "pm.test('Has error about dietary_filters', () => pm.expect(pm.response.json().error).to.include('dietary_filters'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/swaps",
+          "host": ["{{base_url}}"],
+          "path": ["api", "swaps"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredient\": \"butter\",\n  \"dietary_filters\": \"vegan\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Swaps — No API Key (401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 401', () => pm.response.to.have.status(401));",
+              "pm.test('Has error message', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/api/swaps",
+          "host": ["{{base_url}}"],
+          "path": ["api", "swaps"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredient\": \"butter\"\n}"
         }
       }
     }
