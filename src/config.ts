@@ -26,6 +26,9 @@ export const config = {
   gcsBucketName: required("GCS_BUCKET_NAME"),
   googleCloudProject: required("GOOGLE_CLOUD_PROJECT"),
 
+  // RevenueCat
+  revenuecatWebhookAuthKey: required("REVENUCAT_WEBHOOK_AUTH_KEY"),
+
   // Database
   databaseUrl: required("DATABASE_URL"),
 } as const;

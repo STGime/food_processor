@@ -4,6 +4,7 @@ import { router as extractRouter } from "./routes/extract.js";
 import { router as devicesRouter } from "./routes/devices.js";
 import { router as galleryRouter } from "./routes/gallery.js";
 import { router as swapsRouter } from "./routes/swaps.js";
+import { router as webhooksRouter } from "./routes/webhooks.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use("/api", extractRouter);
 app.use("/api/devices", devicesRouter);
 app.use("/api/gallery", galleryRouter);
 app.use("/api", swapsRouter);
+app.use("/api/webhooks", webhooksRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", version: "0.1.0" });
@@ -33,5 +35,6 @@ app.listen(config.port, () => {
   console.log(`  DEL  /api/gallery/:card_id — delete a recipe card`);
   console.log(`  POST /api/gallery/:card_id/image — generate card image`);
   console.log(`  POST /api/swaps            — get ingredient swap suggestions`);
+  console.log(`  POST /api/webhooks/revenucat — RevenueCat subscription webhook`);
   console.log(`  GET  /api/health           — health check`);
 });

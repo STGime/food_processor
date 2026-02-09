@@ -8,6 +8,7 @@ import {
   updateCardImage,
   deleteCard,
 } from "../gallery/store.js";
+import { getJob, getLatestCompletedJob } from "../jobs/store.js";
 import { generateRecipeImage, buildImagePrompt } from "../services/fireworks.js";
 import { uploadImage, deleteImage } from "../services/gcsStorage.js";
 import type { Ingredient, Instruction, RecipeCard, GatedRecipeCard } from "../types.js";
@@ -22,6 +23,7 @@ router.post("/", requireAuth, async (req, res) => {
   try {
     const {
       recipe_name,
+      job_id,
       video_id,
       video_title,
       channel,
@@ -32,6 +34,7 @@ router.post("/", requireAuth, async (req, res) => {
       generate_image = true,
     } = req.body as {
       recipe_name?: string;
+      job_id?: string;
       video_id?: string;
       video_title?: string;
       channel?: string;
@@ -46,12 +49,38 @@ router.post("/", requireAuth, async (req, res) => {
       res.status(400).json({ error: "Missing required field: recipe_name" });
       return;
     }
-    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+
+    // Pull full (ungated) data from the job to avoid storing truncated content.
+    // Look up by job_id first, then fall back to most recent completed job for this video_id + device.
+    let fullIngredients = ingredients;
+    let fullInstructions = instructions;
+    let fullShoppingList = shopping_list;
+    let fullServings = servings;
+
+    const deviceId = req.device!.device_id;
+
+    if (job_id) {
+      const job = await getJob(job_id);
+      if (job?.result) {
+        fullIngredients = job.result.ingredients;
+        fullInstructions = job.result.instructions;
+        fullShoppingList = job.result.shopping_list;
+        fullServings = job.result.servings ?? servings;
+      }
+    } else if (video_id) {
+      const job = await getLatestCompletedJob(video_id, deviceId);
+      if (job?.result) {
+        fullIngredients = job.result.ingredients;
+        fullInstructions = job.result.instructions;
+        fullShoppingList = job.result.shopping_list;
+        fullServings = job.result.servings ?? servings;
+      }
+    }
+
+    if (!fullIngredients || !Array.isArray(fullIngredients) || fullIngredients.length === 0) {
       res.status(400).json({ error: "Missing required field: ingredients (non-empty array)" });
       return;
     }
-
-    const deviceId = req.device!.device_id;
 
     let imageData: { image_url: string; image_gcs_path: string; image_prompt: string } | undefined;
 
@@ -61,16 +90,16 @@ router.post("/", requireAuth, async (req, res) => {
       video_id,
       video_title,
       channel,
-      servings,
-      ingredients,
-      instructions: instructions ?? [],
-      shopping_list,
+      servings: fullServings,
+      ingredients: fullIngredients,
+      instructions: fullInstructions ?? [],
+      shopping_list: fullShoppingList,
     });
 
     if (generate_image) {
       try {
-        const prompt = buildImagePrompt(recipe_name, ingredients);
-        const buf = await generateRecipeImage(recipe_name, ingredients);
+        const prompt = buildImagePrompt(recipe_name, fullIngredients);
+        const buf = await generateRecipeImage(recipe_name, fullIngredients);
         const { publicUrl, gcsPath } = await uploadImage(buf, card.card_id);
         imageData = { image_url: publicUrl, image_gcs_path: gcsPath, image_prompt: prompt };
         await updateCardImage(card.card_id, imageData);

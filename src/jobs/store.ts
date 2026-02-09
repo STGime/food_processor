@@ -50,6 +50,19 @@ export async function getJob(id: string): Promise<Job | undefined> {
   return rows[0] ? rowToJob(rows[0]) : undefined;
 }
 
+export async function getLatestCompletedJob(
+  videoId: string,
+  deviceId: string,
+): Promise<Job | undefined> {
+  const { rows } = await pool.query<JobRow>(
+    `SELECT * FROM jobs
+     WHERE video_id = $1 AND device_id = $2 AND status = 'completed'
+     ORDER BY updated_at DESC LIMIT 1`,
+    [videoId, deviceId],
+  );
+  return rows[0] ? rowToJob(rows[0]) : undefined;
+}
+
 export async function updateJob(
   id: string,
   updates: Partial<Pick<Job, "status" | "current_tier" | "progress" | "status_message" | "result" | "error">>,
