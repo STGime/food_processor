@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary SEO -->
+    <title>FoodProcessor — Turn Cooking Videos Into Recipes & Shopping Lists</title>
+    <meta name="description" content="FoodProcessor uses AI to extract ingredients, shopping lists, and step-by-step cooking instructions from any YouTube cooking video. Paste a link, get a recipe. Free on iOS." />
+    <meta name="keywords" content="cooking video to recipe, YouTube recipe extractor, AI recipe extraction, shopping list from video, cooking video ingredients, recipe card generator, cooking app, meal prep app, YouTube cooking helper" />
+    <meta name="author" content="FoodProcessor" />
+    <link rel="canonical" href="https://foodprocessor.app/" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://foodprocessor.app/" />
+    <meta property="og:title" content="FoodProcessor — Turn Cooking Videos Into Recipes & Shopping Lists" />
+    <meta property="og:description" content="Paste a YouTube cooking video link. Our AI extracts every ingredient, builds your recipe card and shopping list, and gives you step-by-step instructions — in seconds." />
+    <meta property="og:image" content="https://foodprocessor.app/og-image.webp" />
+    <meta property="og:site_name" content="FoodProcessor" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FoodProcessor — Turn Cooking Videos Into Recipes & Shopping Lists" />
+    <meta name="twitter:description" content="AI-powered recipe extraction from YouTube cooking videos. Paste a link, get recipe cards, shopping lists, and cooking instructions." />
+    <meta name="twitter:image" content="https://foodprocessor.app/og-image.webp" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "FoodProcessor",
+      "description": "FoodProcessor uses AI to extract ingredients, shopping lists, and step-by-step cooking instructions from any YouTube cooking video.",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "iOS",
+      "url": "https://foodprocessor.app",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "USD",
+        "lowPrice": "0",
+        "highPrice": "3.99",
+        "offerCount": "2"
+      },
+      "featureList": [
+        "AI Recipe Extraction from YouTube Videos",
+        "Automatic Shopping List Generation",
+        "Step-by-Step Cooking Instructions",
+        "Smart Ingredient Substitutions",
+        "Recipe Card Saving",
+        "Offline Access to Saved Recipes"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "FoodProcessor",
+      "url": "https://foodprocessor.app",
+      "logo": "https://foodprocessor.app/favicon.png",
+      "description": "AI-powered mobile app that turns YouTube cooking videos into structured recipes, shopping lists, and cooking instructions."
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "FoodProcessor — Turn Cooking Videos Into Recipes & Shopping Lists",
+      "description": "AI-powered recipe extraction from YouTube cooking videos. Get ingredients, shopping lists, and step-by-step instructions in seconds.",
+      "url": "https://foodprocessor.app"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What types of cooking videos work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "FoodProcessor works with any YouTube cooking video where ingredients are mentioned verbally or shown on screen. It supports videos in English and works best with recipe-focused content from cooking channels."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How accurate is the ingredient extraction?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Our AI achieves high accuracy for most cooking videos. It captures ingredient names, quantities, and measurements. For complex or fast-paced videos, we recommend reviewing the extracted list — you can always edit ingredients manually."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is FoodProcessor free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "FoodProcessor is free to download with basic features. Premium features like unlimited ingredient extraction, AI-powered swaps, and full cooking instructions are available via an in-app subscription through the App Store."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do ingredient swaps work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tap any ingredient in your recipe to get AI-suggested substitutions. Whether you're out of an ingredient, have dietary restrictions, or want a healthier option — the AI suggests alternatives that work for the recipe."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does the app work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Saved recipe cards and shopping lists are available offline. However, extracting a new recipe from a YouTube video requires an internet connection for AI processing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What platforms is FoodProcessor available on?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "FoodProcessor is currently available on iOS. Android support is planned for a future release."
+          }
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body class="bg-background text-text-primary antialiased">
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+
+    <!-- Noscript fallback for crawlers and users without JavaScript -->
+    <noscript>
+      <div style="max-width:900px;margin:0 auto;padding:40px 20px;color:#111827;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+        <h1 style="font-size:2.5em;margin-bottom:16px;">FoodProcessor — Turn Any Cooking Video Into a Recipe</h1>
+        <p style="color:#22C55E;font-size:1.1em;margin-bottom:24px;">Paste a YouTube link. Our AI extracts every ingredient, builds your recipe card and shopping list, and gives you step-by-step instructions — in seconds.</p>
+
+        <h2 style="margin-top:40px;">Features</h2>
+        <ul>
+          <li><strong>Paste Any YouTube URL</strong> — Just copy a link from your favorite cooking channel.</li>
+          <li><strong>AI-Powered Extraction</strong> — Our AI identifies every ingredient, quantity, and measurement.</li>
+          <li><strong>Instant Shopping Lists</strong> — Ingredients organized into a clean shopping list.</li>
+          <li><strong>Smart Ingredient Swaps</strong> — Get AI-powered substitution suggestions.</li>
+          <li><strong>Step-by-Step Instructions</strong> — Full cooking instructions extracted and organized.</li>
+          <li><strong>Beautiful Recipe Cards</strong> — Every recipe saved with ingredients, instructions, and source.</li>
+        </ul>
+
+        <h2 style="margin-top:40px;">How It Works</h2>
+        <ol>
+          <li><strong>Paste a Link</strong> — Copy any YouTube cooking video URL.</li>
+          <li><strong>AI Does the Work</strong> — Our AI extracts ingredients and generates instructions.</li>
+          <li><strong>Shop & Cook</strong> — Use your shopping list at the store, then follow the recipe.</li>
+        </ol>
+
+        <h2 style="margin-top:40px;">Blog</h2>
+        <p>Visit our blog for recipes, cooking tips, ingredient substitution guides, and meal prep ideas.</p>
+
+        <p style="margin-top:40px;">Available on iOS. Download FoodProcessor free from the App Store.</p>
+      </div>
+    </noscript>
+  </body>
+</html>
