@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { nav } from '@/data/content'
 import { useSmoothScroll } from '@/composables/useSmoothScroll'
 
+const route = useRoute()
+const router = useRouter()
 const { scrollToSection } = useSmoothScroll()
 const isScrolled = ref(false)
 const isMenuOpen = ref(false)
@@ -14,7 +17,11 @@ function handleScroll() {
 function handleNavClick(href: string) {
   isMenuOpen.value = false
   if (href.startsWith('#')) {
-    scrollToSection(href.slice(1))
+    if (route.path !== '/') {
+      router.push('/' + href)
+    } else {
+      scrollToSection(href.slice(1))
+    }
   }
 }
 

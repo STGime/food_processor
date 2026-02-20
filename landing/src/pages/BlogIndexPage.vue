@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { blogPosts } from '@/data/blog'
 import SectionHeading from '@/components/ui/SectionHeading.vue'
+import { useHead } from '@/composables/useHead'
+
+useHead({
+  title: 'Blog — FoodProcessor | Recipes & Cooking Tips',
+  description: 'Fresh ideas, smart techniques, and recipes worth making. Cooking tips and recipes from the FoodProcessor blog.',
+  ogUrl: 'https://foodprocessor.app/blog',
+})
 </script>
 
 <template>

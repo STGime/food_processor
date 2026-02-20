@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "build:prerender": "vue-tsc -b && vite build && npx tsx scripts/prerender.ts",
     "preview": "vite preview",
     "generate-images": "npx tsx scripts/generate-images.ts"
   },
@@ -22,6 +23,7 @@
     "@vitejs/plugin-vue": "^6.0.2",
     "@vue/tsconfig": "^0.8.1",
     "dotenv": "^17.3.1",
+    "puppeteer": "^24.37.5",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vue-tsc": "^3.1.5"

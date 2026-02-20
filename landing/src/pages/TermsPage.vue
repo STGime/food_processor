@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import { useHead } from '@/composables/useHead'
+
+useHead({
+  title: 'Terms of Service — FoodProcessor',
+  description: 'Terms of Service for FoodProcessor. Read about app usage, subscriptions, content ownership, AI accuracy disclaimer, and more.',
+  ogUrl: 'https://foodprocessor.app/terms',
+})
+</script>
+
 <template>
   <main class="pt-24 pb-16 bg-background">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

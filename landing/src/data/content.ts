@@ -80,22 +80,16 @@ export const showcase = {
   description: 'See what FoodProcessor creates from actual cooking videos.',
   recipes: [
     {
-      title: 'Homemade Margherita Pizza',
-      source: 'Cooking video',
-      ingredients: ['Pizza dough', 'San Marzano tomatoes', 'Fresh mozzarella', 'Fresh basil', 'Olive oil', 'Sea salt'],
-      color: '#EF4444',
+      title: 'Longevity Chicken Soup',
+      subtitle: 'Recipe card with instructions',
     },
     {
-      title: 'Thai Green Curry',
-      source: 'Cooking video',
-      ingredients: ['Coconut milk', 'Green curry paste', 'Chicken thighs', 'Thai basil', 'Fish sauce', 'Palm sugar'],
-      color: '#22C55E',
+      title: 'Sweet Potato Fries',
+      subtitle: 'Ingredients with swap options',
     },
     {
-      title: 'Chocolate Lava Cake',
-      source: 'Cooking video',
-      ingredients: ['Dark chocolate', 'Unsalted butter', 'Eggs', 'Sugar', 'All-purpose flour', 'Vanilla extract'],
-      color: '#92400E',
+      title: 'Turkish Lentil Soup',
+      subtitle: 'Full recipe with 17 steps',
     },
   ],
 }

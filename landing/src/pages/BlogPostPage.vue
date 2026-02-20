@@ -3,10 +3,18 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { marked } from 'marked'
 import { getPostBySlug } from '@/data/blog'
+import { useHead } from '@/composables/useHead'
 
 const route = useRoute()
 const post = computed(() => getPostBySlug(route.params.slug as string))
 const renderedContent = computed(() => post.value ? marked(post.value.content) : '')
+
+useHead({
+  title: computed(() => post.value ? `${post.value.title} — FoodProcessor Blog` : 'Blog Post — FoodProcessor'),
+  description: computed(() => post.value?.excerpt || 'Read cooking tips and recipes on the FoodProcessor blog.'),
+  ogUrl: computed(() => `https://foodprocessor.app/blog/${route.params.slug}`),
+  ogType: 'article',
+})
 </script>
 
 <template>

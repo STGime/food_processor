@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import { useHead } from '@/composables/useHead'
+
+useHead({
+  title: 'Privacy Policy — FoodProcessor',
+  description: 'Learn how FoodProcessor collects, uses, and protects your information. We use anonymous device IDs and do not require account creation.',
+  ogUrl: 'https://foodprocessor.app/privacy',
+})
+</script>
+
 <template>
   <main class="pt-24 pb-16 bg-background">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
